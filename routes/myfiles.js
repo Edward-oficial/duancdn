@@ -7,12 +7,10 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 async function cleanupExpired() {
   const cutoff = new Date(Date.now() - MAX_AGE_MS).toISOString();
-  const { data: expired } = await supabase.from('duan_cdn_files').select('id, filename').lt('created_at', cutoff);
+  const { data: expired } = await supabase.from('duan_cdn_files').select('id').lt('created_at', cutoff);
 
   if (!expired || !expired.length) return;
 
-  const filenames = expired.map((r) => r.filename);
-  await supabase.storage.from(BUCKET).remove(filenames);
   await supabase.from('duan_cdn_files').delete().in('id', expired.map((r) => r.id));
 }
 
