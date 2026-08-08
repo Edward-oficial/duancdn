@@ -13,6 +13,11 @@ router.post('/', upload.single('file'), async (req, res) => {
     return res.status(400).json({ status: false, creator: 'Duan CDN', error: 'Falta el archivo' });
   }
 
+  const uid = req.body.uid;
+  if (!uid) {
+    return res.status(400).json({ status: false, creator: 'Duan CDN', error: 'Falta uid' });
+  }
+
   const ext = (req.file.originalname.split('.').pop() || 'jpg').toLowerCase();
   const filename = `${crypto.randomBytes(12).toString('hex')}.${ext}`;
 
@@ -24,6 +29,12 @@ router.post('/', upload.single('file'), async (req, res) => {
   if (error) {
     return res.status(500).json({ status: false, creator: 'Duan CDN', error: error.message });
   }
+
+  await supabase.from('duan_cdn_files').insert({
+    uid,
+    filename,
+    mimetype: req.file.mimetype,
+  });
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
 
