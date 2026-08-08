@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const supabase = require('../utils/supabaseClient');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
 const BUCKET = 'photos';
 
