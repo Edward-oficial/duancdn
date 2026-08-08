@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duan CDN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { max-width: 100%; overflow-x: hidden; }
+  body {
+    margin: 0; min-height: 100vh; background: #050607; color: #e7ecf3;
+    font-family: 'Inter', sans-serif; padding: 40px 16px;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { color: #8a94a3; font-size: 13px; margin: 0 0 24px; }
+  .card { background: #0b0e14; border: 1px solid #1c2733; border-radius: 8px; padding: 20px; }
+  input[type="file"] {
+    width: 100%; background: #05070a; border: 1px solid #1c2733; color: #e7ecf3;
+    padding: 10px; border-radius: 6px; font-size: 12.5px; margin-bottom: 12px;
+  }
+  button {
+    background: #1d4ed8; color: #fff; border: none; padding: 10px 16px;
+    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%;
+  }
+  button:hover { background: #1e40af; }
+  .result { margin-top: 16px; font-size: 12px; word-break: break-all; }
+  .result div { margin-bottom: 8px; }
+  .result b { color: #4d8cff; display: block; margin-bottom: 2px; }
+  img { max-width: 100%; border-radius: 6px; margin-top: 14px; border: 1px solid #1c2733; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Duan CDN</h1>
+  <p class="sub">Subida de imágenes con almacenamiento permanente en Supabase</p>
+
+  <div class="card">
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="uploadBtn">Subir</button>
+    <div class="result" id="result"></div>
+  </div>
+</div>
+
+<script>
+document.getElementById('uploadBtn').addEventListener('click', async () => {
+  const input = document.getElementById('fileInput');
+  const result = document.getElementById('result');
+
+  if (!input.files[0]) {
+    result.innerHTML = 'Elegí un archivo primero.';
+    return;
+  }
+
+  result.innerHTML = 'Subiendo...';
+
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!data.status) {
+      result.innerHTML = 'Error: ' + data.error;
+      return;
+    }
+
+    result.innerHTML = `
+      <div><b>URL con tu dominio</b>${data.urlPropia}</div>
+      <div><b>URL directa de Supabase</b>${data.urlDirecta}</div>
+      <img src="${data.urlPropia}">
+    `;
+  } catch (err) {
+    result.innerHTML = 'Error: ' + err.message;
+  }
+});
+</script>
+</body>
+</html>
