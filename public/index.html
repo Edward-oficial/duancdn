@@ -14,6 +14,12 @@
     font-family: 'Inter', sans-serif; padding: 40px 16px;
   }
   .wrap { max-width: 480px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .cache-link {
+    color: #4d8cff; font-size: 12.5px; text-decoration: none; border: 1px solid #1c2733;
+    padding: 6px 12px; border-radius: 6px; background: #0b0e14;
+  }
+  .cache-link:hover { background: #0f141d; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   p.sub { color: #8a94a3; font-size: 13px; margin: 0 0 24px; }
   .card { background: #0b0e14; border: 1px solid #1c2733; border-radius: 8px; padding: 20px; }
@@ -45,7 +51,10 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Duan CDN</h1>
+  <div class="topbar">
+    <h1>Duan CDN</h1>
+    <a class="cache-link" href="/cache.html">Mi caché</a>
+  </div>
   <p class="sub">Subida de imágenes con almacenamiento permanente en Supabase</p>
 
   <div class="card">
@@ -56,6 +65,15 @@
 </div>
 
 <script>
+function getUid() {
+  let uid = localStorage.getItem('duan_uid');
+  if (!uid) {
+    uid = crypto.randomUUID();
+    localStorage.setItem('duan_uid', uid);
+  }
+  return uid;
+}
+
 const MAX_AUDIO_SECONDS = 20 * 60;
 
 function getMediaDuration(file) {
@@ -101,6 +119,7 @@ document.getElementById('uploadBtn').addEventListener('click', async () => {
 
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('uid', getUid());
 
   try {
     const res = await fetch('/upload', { method: 'POST', body: formData });
