@@ -32,6 +32,19 @@
     border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%;
   }
   button:hover { background: #1e40af; }
+  .file-info {
+    display: none; align-items: center; gap: 10px;
+    background: #05070a; border: 1px solid #1c2733; border-radius: 6px;
+    padding: 9px 10px; margin-bottom: 12px; font-size: 12px;
+  }
+  .file-info .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #e7ecf3; }
+  .file-info .size { color: #6b7686; flex-shrink: 0; }
+  .file-info .remove {
+    background: #1c2733; color: #e7ecf3; border: none; width: 20px; height: 20px;
+    border-radius: 50%; font-size: 13px; line-height: 1; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .file-info .remove:hover { background: #2a1414; color: #e0837a; }
   .result { margin-top: 16px; font-size: 12px; }
   .link-row {
     display: flex; align-items: center; gap: 8px;
@@ -59,6 +72,11 @@
 
   <div class="card">
     <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
+    <div class="file-info" id="fileInfo">
+      <span class="name" id="fileInfoName"></span>
+      <span class="size" id="fileInfoSize"></span>
+      <button class="remove" id="fileInfoRemove">&times;</button>
+    </div>
     <button id="uploadBtn">Subir</button>
     <div class="result" id="result"></div>
   </div>
@@ -73,6 +91,36 @@ function getUid() {
   }
   return uid;
 }
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileInfoName = document.getElementById('fileInfoName');
+const fileInfoSize = document.getElementById('fileInfoSize');
+const fileInfoRemove = document.getElementById('fileInfoRemove');
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) {
+    fileInfo.style.display = 'none';
+    return;
+  }
+  fileInfoName.textContent = file.name;
+  fileInfoSize.textContent = formatSize(file.size);
+  fileInfo.style.display = 'flex';
+  document.getElementById('result').innerHTML = '';
+});
+
+fileInfoRemove.addEventListener('click', () => {
+  fileInput.value = '';
+  fileInfo.style.display = 'none';
+  document.getElementById('result').innerHTML = '';
+});
 
 const MAX_AUDIO_SECONDS = 20 * 60;
 
