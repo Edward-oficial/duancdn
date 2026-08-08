@@ -3,15 +3,18 @@ const supabase = require('../utils/supabaseClient');
 
 const router = express.Router();
 const BUCKET = 'photos';
-const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const MAX_CACHE_MS = 24 * 60 * 60 * 1000;
+const MAX_STORAGE_MS = 30 * 24 * 60 * 60 * 1000;
 
-async function cleanupExpired() {
-  const cutoff = new Date(Date.now() - MAX_AGE_MS).toISOString();
-  const { data: expired } = await supabase.from('duan_cdn_files').select('id').lt('created_at', cutoff);
+async function cleanupOldFiles() {
+  const cutoff = new Date(Date.now() - MAX_STORAGE_MS).toISOString();
+  const { data: old } = await supabase.from('duan_cdn_files').select('id, filename').lt('created_at', cutoff);
 
-  if (!expired || !expired.length) return;
+  if (!old || !old.length) return;
 
-  await supabase.from('duan_cdn_files').delete().in('id', expired.map((r) => r.id));
+  const filenames = old.map((r) => r.filename);
+  await supabase.storage.from(BUCKET).remove(filenames);
+  await supabase.from('duan_cdn_files').delete().in('id', old.map((r) => r.id));
 }
 
 router.get('/', async (req, res) => {
@@ -20,12 +23,13 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ status: false, creator: 'Duan CDN', error: 'Falta uid' });
   }
 
-  await cleanupExpired();
+  const cacheCutoff = new Date(Date.now() - MAX_CACHE_MS).toISOString();
 
   const { data, error } = await supabase
     .from('duan_cdn_files')
     .select('*')
     .eq('uid', uid)
+    .gte('created_at', cacheCutoff)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -36,7 +40,7 @@ router.get('/', async (req, res) => {
     filename: row.filename,
     mimetype: row.mimetype,
     createdAt: row.created_at,
-    expiresAt: new Date(new Date(row.created_at).getTime() + MAX_AGE_MS).toISOString(),
+    expiresAt: new Date(new Date(row.created_at).getTime() + MAX_CACHE_MS).toISOString(),
     url: `${req.protocol}://${req.get('host')}/cdn/${row.filename}`,
   }));
 
@@ -68,4 +72,4 @@ router.delete('/:filename', async (req, res) => {
   res.json({ status: true, creator: 'Duan CDN' });
 });
 
-module.exports = { router, cleanupExpired };
+module.exports = { router, cleanupOldFiles };
