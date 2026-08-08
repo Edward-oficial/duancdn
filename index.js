@@ -4,7 +4,7 @@ const path = require('path');
 
 const uploadRoute = require('./routes/upload');
 const serveRoute = require('./routes/serve');
-const { router: myFilesRoute, cleanupExpired } = require('./routes/myfiles');
+const { router: myFilesRoute, cleanupOldFiles } = require('./routes/myfiles');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,7 +28,7 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-cleanupExpired();
-setInterval(cleanupExpired, 15 * 60 * 1000);
+cleanupOldFiles();
+setInterval(cleanupOldFiles, 60 * 60 * 1000);
 
 app.listen(PORT, () => console.log(`Duan CDN corriendo en el puerto ${PORT}`));
